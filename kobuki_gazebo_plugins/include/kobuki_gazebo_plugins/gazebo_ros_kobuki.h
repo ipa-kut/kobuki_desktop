@@ -112,6 +112,7 @@ private:
   bool prepareCliffSensor();
   bool prepareBumper();
   bool prepareWheelDropSensors();
+  bool prepareWheelDropCasterSensors();
   bool prepareIMU();
   void setupRosApi(std::string& model_name);
 
@@ -123,7 +124,7 @@ private:
   void updateCliffSensor();
   void updateBumper();
   void updateWheelDrop();
-
+  void updateWheelDropCaster();
 
   /*
    *  Parameters
@@ -239,11 +240,17 @@ private:
   /// Pointers to wheel contact sensors used to simulate Kobuki's wheel drop sensors
   sensors::ContactSensorPtr wheel_left_drop_;
   sensors::ContactSensorPtr wheel_right_drop_;
+  sensors::ContactSensorPtr caster_front_drop_;
+  sensors::ContactSensorPtr caster_back_drop_;
   /// ROS publisher for wheel drop events
   ros::Publisher wheel_drop_main_pub_;
+  ros::Publisher wheel_drop_caster_pub_;
   /// Kobuki ROS message for wheel drop event
   kobuki_msgs::WheelDropEvent wheel_drop_main_event_;
+  kobuki_msgs::WheelDropEvent wheel_drop_caster_event_;
   /// Wheel drop sensor flags
+  bool caster_front_raised_flag_ = false, caster_front_lowered_flag_ = false;
+  bool caster_back_raised_flag_ = false, caster_back_lowered_flag_ = false;
   bool wheel_left_raised_flag_ = false, wheel_left_lowered_flag_ = false;
   bool wheel_right_raised_flag_ = false, wheel_right_lowered_flag_ = false;
   /// Pointer to IMU sensor model

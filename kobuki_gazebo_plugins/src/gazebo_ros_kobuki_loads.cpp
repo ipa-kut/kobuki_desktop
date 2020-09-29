@@ -317,6 +317,42 @@ bool GazeboRosKobuki::prepareWheelDropSensors()
 }
 
 /*
+ * Prepare caster wheel drop caster sensors
+ */
+bool GazeboRosKobuki::prepareWheelDropCasterSensors()
+{
+  std::string caster_front_name;
+  std::string caster_back_name;
+
+  if (sdf_->HasElement("caster_front_sensor_name") && sdf_->HasElement("caster_back_sensor_name"))
+  {
+    caster_front_name = sdf_->GetElement("caster_front_sensor_name")->Get<std::string>();
+    caster_back_name = sdf_->GetElement("caster_back_sensor_name")->Get<std::string>();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Couldn't find the name of one of the caster wheel drop sensors in the model description!"
+                     << " Did you specify it?" << " [" << node_name_ <<"]");
+    return false;
+  }
+
+  caster_front_drop_ = std::dynamic_pointer_cast<sensors::ContactSensor>(
+            sensors::SensorManager::Instance()->GetSensor(caster_front_name));
+  caster_back_drop_ = std::dynamic_pointer_cast<sensors::ContactSensor>(
+            sensors::SensorManager::Instance()->GetSensor(caster_back_name));
+
+  if (!caster_front_drop_ || !caster_back_drop_)
+  {
+    ROS_ERROR_STREAM("Couldn't find one of the caster wheel drop sensors in the model! [" << node_name_ <<"]");
+    return false;
+  }
+
+  caster_front_drop_->SetActive(true);
+  caster_back_drop_->SetActive(true);
+  return true;
+}
+
+/*
  * Prepare IMU
  */
 bool GazeboRosKobuki::prepareIMU()
@@ -397,6 +433,11 @@ void GazeboRosKobuki::setupRosApi(std::string& model_name)
   std::string wheel_drop_main_topic = base_prefix + "/events/wheel_drop";
   wheel_drop_main_pub_ = gazebo_ros_->node()->advertise<kobuki_msgs::WheelDropEvent>(wheel_drop_main_topic, 1);
   ROS_INFO("%s: Advertise Wheel Drop[%s]!", gazebo_ros_->info(), wheel_drop_main_topic.c_str());
+
+  // wheel_drop_caster
+  std::string wheel_drop_caster_topic = base_prefix + "/events/wheel_drop_caster";
+  wheel_drop_caster_pub_ = gazebo_ros_->node()->advertise<kobuki_msgs::WheelDropEvent>(wheel_drop_caster_topic, 1);
+  ROS_INFO("%s: Advertise Wheel Drop Caster[%s]!", gazebo_ros_->info(), wheel_drop_caster_topic.c_str());
 
   // IMU
   std::string imu_topic = base_prefix + "/sensors/imu_data";

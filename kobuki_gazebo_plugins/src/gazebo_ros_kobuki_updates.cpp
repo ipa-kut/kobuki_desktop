@@ -462,4 +462,52 @@ void GazeboRosKobuki::updateWheelDrop()
         wheel_right_raised_flag_ = false;
     }
 }
+
+/*
+ * Caster wheel drop sensors
+ */
+/// Contacts between the wheels and the base are not reported by Gazebo.
+/// This means that ANY contacts that the wheels have are either with the main surface or with a colliding object.
+/// This functions ignores the second case
+void GazeboRosKobuki::updateWheelDropCaster()
+{
+    msgs::Contacts contacts_front = caster_front_drop_->Contacts();
+    msgs::Contacts contacts_back = caster_back_drop_->Contacts();
+
+    ///Caster front wheel drop sensor
+    if (contacts_front.contact_size() > 0 && !caster_front_raised_flag_)
+    {
+        wheel_drop_caster_event_.wheel = kobuki_msgs::WheelDropEvent::LEFT;
+        wheel_drop_caster_event_.state = kobuki_msgs::WheelDropEvent::RAISED;
+        wheel_drop_caster_pub_.publish(wheel_drop_caster_event_);
+        caster_front_raised_flag_ = true;
+        caster_front_lowered_flag_ = false;
+    }
+    else if (contacts_front.contact_size() == 0 && !caster_front_lowered_flag_)
+    {
+        wheel_drop_caster_event_.wheel = kobuki_msgs::WheelDropEvent::LEFT;
+        wheel_drop_caster_event_.state = kobuki_msgs::WheelDropEvent::DROPPED;
+        wheel_drop_caster_pub_.publish(wheel_drop_caster_event_);
+        caster_front_lowered_flag_ = true;
+        caster_front_raised_flag_ = false;
+    }
+
+    ///Caster back wheel drop sensor
+    if (contacts_back.contact_size() > 0 && !caster_back_raised_flag_)
+    {
+        wheel_drop_caster_event_.wheel = kobuki_msgs::WheelDropEvent::RIGHT;
+        wheel_drop_caster_event_.state = kobuki_msgs::WheelDropEvent::RAISED;
+        wheel_drop_caster_pub_.publish(wheel_drop_caster_event_);
+        caster_back_raised_flag_ = true;
+        caster_back_lowered_flag_ = false;
+    }
+    else if (contacts_back.contact_size() == 0 && !caster_back_lowered_flag_)
+    {
+        wheel_drop_caster_event_.wheel = kobuki_msgs::WheelDropEvent::RIGHT;
+        wheel_drop_caster_event_.state = kobuki_msgs::WheelDropEvent::DROPPED;
+        wheel_drop_caster_pub_.publish(wheel_drop_caster_event_);
+        caster_back_lowered_flag_ = true;
+        caster_back_raised_flag_ = false;
+    }
+}
 }
